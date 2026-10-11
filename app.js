@@ -6,14 +6,17 @@ import { translate, PROVIDERS } from "./ai.js";
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
 const pct = (x, digits = 1) => `${x >= 0 ? "+" : ""}${x.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
-const KEY_NAME = "hindsight_key"; // sessionStorage slot name, not the secret itself
+const keySlot = (provider) => `hindsight_key_${provider}`; // sessionStorage slot names, not the secrets themselves
 
 let examples = [], current = null, versions = [];
 
 // ---------- data ----------
 const files = new Map();
 const loadFile = (name) => {
-  if (!files.has(name)) files.set(name, fetch(`data/${name}.json`).then((r) => { if (!r.ok) throw new Error(`Could not load ${name} data.`); return r.json(); }));
+  if (!files.has(name)) {
+    files.set(name, fetch(`data/${name}.json`).then((r) => { if (!r.ok) throw new Error(`Could not load ${name} data.`); return r.json(); })
+      .catch((e) => { files.delete(name); throw e; })); // a network blip should not break this ticker until reload
+  }
   return files.get(name);
 };
 let vixByDate = null;
@@ -30,9 +33,11 @@ async function loadData(spec) {
 function initSettings() {
   for (const [id, p] of Object.entries(PROVIDERS)) $("provider").append(el("option", { value: id, textContent: p.label }));
   $("model").value = PROVIDERS.openai.defaultModel;
-  $("provider").addEventListener("change", () => { $("model").value = PROVIDERS[$("provider").value].defaultModel; });
-  try { $("key").value = sessionStorage.getItem(KEY_NAME) || ""; } catch {}
-  $("key").addEventListener("input", () => { try { sessionStorage.setItem(KEY_NAME, $("key").value.trim()); } catch {} });
+  // Each provider keeps its own key, so switching the dropdown never sends one provider's key to the other.
+  const loadKey = () => { try { $("key").value = sessionStorage.getItem(keySlot($("provider").value)) || ""; } catch { $("key").value = ""; } };
+  $("provider").addEventListener("change", () => { $("model").value = PROVIDERS[$("provider").value].defaultModel; loadKey(); });
+  loadKey();
+  $("key").addEventListener("input", () => { try { sessionStorage.setItem(keySlot($("provider").value), $("key").value.trim()); } catch {} });
 }
 const settings = () => ({ provider: $("provider").value, model: $("model").value.trim(), apiKey: $("key").value.trim() });
 
@@ -86,10 +91,14 @@ async function show(spec, source, idea) {
   describe(spec).forEach((line) => $("spec-rules").append(el("li", { textContent: line })));
   const assumptions = spec.assumptions?.length ? spec.assumptions : ["None stated."];
   assumptions.forEach((a) => $("spec-assumptions").append(el("li", { textContent: a })));
-  const result = await renderAnalysis();
-  versions.push({ idea, spec, result });
-  renderVersions();
+  await runAndRecord();
   $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function runAndRecord() {
+  const { result, costPct } = await renderAnalysis();
+  versions.push({ idea: current.idea, result, costPct });
+  renderVersions();
 }
 
 async function renderAnalysis() {
@@ -104,10 +113,10 @@ async function renderAnalysis() {
     el("div", {}, el("strong", { textContent: c.name }), el("p", { textContent: c.detail })))));
   renderTable($("regimes"), ["Regime", "Dates", "Strategy", "Buy and hold", "Beat holding?"],
     r.regimes.map((g) => [g.name, `${g.start} to ${g.end}`, pct(g.strategyPct), pct(g.holdPct), g.strategyPct > g.holdPct ? "Yes" : "No"]), [2, 3]);
-  $("trades-summary").textContent = `Every trade (${r.tradeCount})`;
+  $("trades-summary").textContent = `Every trade (${r.run.trades.length})`;
   renderTable($("trades"), ["#", "Bought", "Buy price", "Sold", "Sell price", "Days", "Return", "Why sold"],
     r.run.trades.map((t, i) => [i + 1, t.entryDate, t.entryPrice.toFixed(2), t.exitDate, t.exitPrice.toFixed(2), t.days, pct(t.returnPct), t.reason]), [0, 2, 4, 5, 6]);
-  return r;
+  return { result: r, costPct };
 }
 
 function renderMetrics(r, spec) {
@@ -118,7 +127,7 @@ function renderMetrics(r, spec) {
     [pct(s.cagrPct), `per year · holding: ${pct(h.cagrPct)}`, s.cagrPct],
     [pct(s.maxDrawdownPct), `worst drop · holding: ${pct(h.maxDrawdownPct)}`, -1],
     [s.sharpe.toFixed(2), `Sharpe (return per unit of bumpiness) · holding: ${h.sharpe.toFixed(2)}`, 0],
-    [String(r.tradeCount), `trades · ${r.winRatePct.toFixed(0)}% made money · invested ${r.timeInMarketPct.toFixed(0)}% of days`, 0],
+    [String(r.tradeCount), `finished trades${r.stillOpen ? " (+1 open)" : ""} · ${r.winRatePct.toFixed(0)}% made money · invested ${r.timeInMarketPct.toFixed(0)}% of days`, 0],
   ];
   $("metrics").replaceChildren(...items.map(([big, small, sign]) => el("div", { className: "metric" },
     el("b", { textContent: big, className: sign > 0 ? "up" : sign < 0 ? "down" : "" }), el("span", { textContent: small }))));
@@ -131,9 +140,9 @@ function renderTable(table, head, rows, numericCols) {
 }
 
 function renderVersions() {
-  renderTable($("versions"), ["Version", "Idea", "Return", "Holding", "Worst drop", "Sharpe", "Luck test"],
-    versions.map((v, i) => [`v${i + 1}`, v.idea.length > 48 ? `${v.idea.slice(0, 47)}…` : v.idea, pct(v.result.strategy.totalPct, 0), pct(v.result.hold.totalPct, 0),
-      pct(v.result.strategy.maxDrawdownPct, 0), v.result.strategy.sharpe.toFixed(2), v.result.luck ? `${(v.result.luck.shareAsGood * 100).toFixed(1)}% as good` : "n/a"]), [2, 3, 4, 5, 6]);
+  renderTable($("versions"), ["Version", "Idea", "Cost", "Return", "Holding", "Worst drop", "Sharpe", "Luck test"],
+    versions.map((v, i) => [`v${i + 1}`, v.idea.length > 48 ? `${v.idea.slice(0, 47)}…` : v.idea, `${v.costPct}%`, pct(v.result.strategy.totalPct, 0), pct(v.result.hold.totalPct, 0),
+      pct(v.result.strategy.maxDrawdownPct, 0), v.result.strategy.sharpe.toFixed(2), v.result.luck ? `${(v.result.luck.shareAsGood * 100).toFixed(1)}% as good` : "n/a"]), [2, 3, 4, 5, 6, 7]);
 }
 
 // Growth of $10,000 on a log scale, so a 2x move looks the same size in 2006 and in 2026.
@@ -177,7 +186,7 @@ $("refine").addEventListener("submit", (e) => {
   if (!current?.spec.supported) return status("Test a supported idea first, then change it.", true);
   runLive(tweak, current.spec);
 });
-$("cost").addEventListener("change", () => { if (current?.spec.supported) renderAnalysis().catch((e) => status(e.message, true)); });
+$("cost").addEventListener("change", () => { if (current?.spec.supported) runAndRecord().catch((e) => status(e.message, true)); });
 
 fetch("data/examples.json").then((r) => r.json()).then((list) => {
   examples = list;

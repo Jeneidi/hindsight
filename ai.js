@@ -32,7 +32,7 @@ If the idea can be tested with the data below, return:
   "assumptions": ["every choice the user did not state, in plain English"]
 }
 condition = {"left": indicator, "op": one of ${OPS.join(" ")}, "right": number or indicator or list}
-indicator = {"ind": name} or {"ind": name, "days": N} with N from 2 to 252
+indicator = {"ind": name} or {"ind": name, "days": N} with N from 1 to 252
 "in" is only for months: {"left": {"ind": "month"}, "op": "in", "right": [11, 12, 1]}
 crosses_above / crosses_below are true only on the day the left side crosses the right side.
 
@@ -47,6 +47,8 @@ Rules:
 - A week is 5 trading days, a month 21, three months 63, a year 252.
 - Every strategy needs a way out: an exit condition, hold_days, stop_loss_pct or take_profit_pct. If the user gave none, pick a sensible one and list it in assumptions.
 - Do not add rules the user did not ask for, except that required way out.
+- Prices are adjusted for later splits and dividends, so a dollar level ("below $150") is not a price anyone saw at the time. Never compare price or sma with a number. Compare them with each other, or use change or off_high for percentage moves. If the idea depends on a dollar level, return supported false with a percentage-based closest version.
+- Always include "assumptions", even if it is an empty list.
 
 If the idea needs anything not listed above (another ticker, several stocks at once, short selling, options, leverage, earnings or other fundamentals, news, insider or politician trades, intraday data), return:
 {"supported": false, "reason": "what is missing, in one sentence", "closest": "a testable version using only the data above, in one sentence, or an empty string"}

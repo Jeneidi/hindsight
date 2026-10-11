@@ -28,7 +28,7 @@ Hindsight lets anyone test an idea without code, and then it attacks its own res
    5. Honesty report (engine.js)            -> peeking, costs, buy-and-hold, regimes, luck, sample size
 ```
 
-The key design decision: **the AI only translates. It never sees a price and never calculates a result.** Every number on screen comes from about 350 lines of ordinary code in `engine.js`, which the tests in `test/engine.test.js` check against hand-calculated answers. If someone asks "how do you know the AI didn't make up the numbers?", the answer is that it is not allowed anywhere near them.
+The key design decision: **the AI only translates. It never sees a price and never calculates a result.** Every number on screen comes from about 360 lines of ordinary code in `engine.js`. The core math (indicators, fills, costs, sizing, returns, worst drop, yearly growth, Sharpe, regime splits) is checked by the tests in `test/engine.test.js` against hand-calculated answers. If someone asks "how do you know the AI didn't make up the numbers?", the answer is that it is not allowed anywhere near them.
 
 ## Step 1: the AI translator (`ai.js`)
 
@@ -39,7 +39,7 @@ The AI receives a fixed set of instructions (the "system prompt" in `ai.js`) tha
 - 7 comparisons: above, below, at or above, at or below, crosses above, crosses below, and "is one of" (for months).
 - Ways to exit: an exit rule, a holding period, a stop-loss, or a take-profit.
 
-It must answer with a JSON rule sheet, and it must list every assumption it made. Here is the real answer it gave for "Buy Apple every time it drops 5% in a week":
+It must answer with a JSON rule sheet, and it is told to list every assumption it made. The validator requires the list to be there, though no code can prove the list is complete. Here is the real answer it gave for "Buy Apple every time it drops 5% in a week":
 
 ```json
 {
@@ -69,7 +69,7 @@ If an idea needs data the app does not have, the AI must refuse instead of guess
 
 ## Step 2: the validator (`validateSpec` in `engine.js`)
 
-Before anything runs, code checks the rule sheet: Is the ticker on the list? Is every indicator real? Does a moving average say how many days it covers? Is there at least one way to sell? (A strategy that never sells is not a strategy.)
+Before anything runs, code checks the rule sheet: Is the ticker on the list? Is every indicator real? Does a moving average say how many days it covers? Is there at least one way to sell? (A strategy that never sells is not a strategy.) Is a price being compared with a dollar amount? That one is subtle: the price history is adjusted for splits and dividends that happened later, so "SPY below $100" in 2005 refers to a price nobody actually saw then, a hidden way of peeking at the future. Hindsight only lets a price be compared with another price measure (like its moving average) or expressed as a percentage move.
 
 If anything is wrong, the exact error messages go back to the AI once ("ticker must be one of SPY, QQQ, ..."), and it gets one chance to fix them. If the second answer is still wrong, Hindsight refuses to run it. This is the guardrail that lets an unpredictable AI sit safely in front of predictable code. It is the same idea as validating a form before saving it to a database.
 
@@ -96,14 +96,14 @@ Prices come from Yahoo Finance and are **adjusted for splits and dividends**, so
 | Per year (CAGR) | The steady yearly growth rate that would produce the same total. |
 | Worst drop (max drawdown) | The biggest fall from a high point to a later low. This is the pain you would have had to sit through. |
 | Sharpe ratio | Return divided by how bumpy the ride was. Higher is better; around 1 is good for a single stock strategy. |
-| Trades, % that made money, % of days invested | How active the strategy was. |
+| Finished trades, % that made money, % of days invested | How active the strategy was. A position still open on the last day is shown in the trade list but not counted as finished. |
 
 ## Step 5: the honesty report (`analyze` in `engine.js`)
 
 This is the part that answers "should I believe this?". Each check gets PASS, WARN or FAIL.
 
 1. **No peeking at the future.** The engine never uses a price before it existed (step 3). To show why this matters, Hindsight also runs the same rules with the most common backtesting bug switched on: trading at the morning open using that afternoon's close. The report shows how much that bug would have changed the answer. It can push results up or down. For the VIX panic idea the bug turns +269% into +149%. Either way, a backtest with the bug is answering a question no real trader could act on.
-2. **Trading costs included.** Shows the result with costs set to zero. Strategies that trade often can look great before costs and lose money after. You can change the cost in the Results box and everything recalculates.
+2. **Trading costs included.** Shows the result with costs set to zero. Strategies that trade often can look great before costs and lose money after. You can change the cost in the Results box; everything recalculates and the new run is added to the version table.
 3. **Beats simply holding.** The most humbling check. Most ideas lose to buying the stock once and doing nothing. If the strategy earns less but with a smoother ride (better Sharpe), it gets a WARN instead of a FAIL, because some people would happily trade return for less pain.
 4. **Holds up across market regimes.** One 20-year number can hide a strategy that only works in one kind of market. Hindsight splits history into named periods (the 2008 financial crisis, the post-crisis bull run, the calm 2016-2019 bull, the COVID crash, the recovery rally, the 2022 rate-hike bear market, the AI-led bull) and compares the strategy with buy-and-hold in each.
 5. **Skill or luck (the luck test).** This is a Monte Carlo test, which means "run many random simulations and see where the real result lands." Hindsight creates 1,000 random traders. Each one makes the same number of trades as the strategy, holds each trade for the same number of days, on the same stock, with the same costs, but picks the dates at random. If only a few percent of random traders did as well, the timing rule probably adds something real. If half of them did, the result is indistinguishable from throwing darts. The random generator uses a fixed seed, so the same idea always gets the same answer.
@@ -135,10 +135,10 @@ That is the kind of nuanced answer the tool is built to produce: not "this works
 
 | File | What it does | Size |
 |---|---|---|
-| `engine.js` | Validation, indicators, backtest, scoring, honesty checks, plain-English description | ~350 lines |
+| `engine.js` | Validation, indicators, backtest, scoring, honesty checks, plain-English description | ~360 lines |
 | `ai.js` | System prompt, OpenAI and Anthropic calls, JSON parsing, validate-and-repair loop | ~120 lines |
 | `app.js` | Page logic: settings, examples, tables, chart | ~200 lines |
-| `test/engine.test.js` | 12 tests: hand-checked math, no peeking, costs, sizing, validation, split adjustment, recorded examples | |
+| `test/engine.test.js` | 14 tests: hand-checked math, no peeking, costs, sizing, open positions, validation, split adjustment, recorded examples | |
 | `scripts/fetch-prices.mjs` | Downloads and adjusts the price data | |
 | `scripts/record-examples.mjs` | Runs the example ideas through the real AI so visitors can try them without a key | |
 
@@ -150,7 +150,7 @@ That is the kind of nuanced answer the tool is built to produce: not "this works
 
 **What stops the AI from returning garbage?** The validator. Unknown tickers, made-up indicators, missing exits and impossible numbers are rejected, the AI gets the exact errors back once, and anything still invalid is refused.
 
-**Why should I trust the backtest?** Signals use only information that existed at the time, fills happen at the next open, costs are charged both ways and included in position sizing, prices are split- and dividend-adjusted, and each of these is covered by a test with a hand-calculated answer.
+**Why should I trust the backtest?** Signals use only information that existed at the time, fills happen at the next open, costs are charged both ways and included in position sizing, prices are split- and dividend-adjusted (and never compared with dollar levels), and each of these is covered by a test.
 
 **Then why can't I trust it completely?** Survivorship bias in the ticker list, free data, 0.1% costs that may be optimistic for some traders, and the fact that the past is not the future. The report says so on every run.
 

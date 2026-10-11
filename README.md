@@ -4,7 +4,7 @@
 
 Describe a trading idea in plain English. An LLM turns it into a JSON rule sheet, code validates that rule sheet, a transparent engine backtests it on 20 years of daily prices, and an honesty report asks whether the result was skill or luck.
 
-![tests](https://img.shields.io/badge/tests-12%2F12%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-14%2F14%20passing-brightgreen)
 ![data](https://img.shields.io/badge/data-15%20tickers%20%2B%20VIX%2C%202005--2026-blue)
 ![stack](https://img.shields.io/badge/stack-vanilla%20JS%2C%20no%20build%2C%20no%20server-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
@@ -21,8 +21,8 @@ On the bundled examples it is mostly bad news, which is the point. "Buy Apple ev
 plain English -> ai.js (OpenAI or Claude) -> JSON rule sheet -> validateSpec -> backtest -> honesty report
 ```
 
-- **The AI only translates.** It never sees a price or computes a result. It must list every assumption it makes, and it must refuse ideas the data cannot support ("Copy Nancy Pelosi's trades") instead of guessing.
-- **Validate, repair once, or refuse.** `validateSpec` rejects unknown tickers, made-up indicators, missing exits and out-of-range numbers. The exact errors go back to the model once; anything still invalid is never run.
+- **The AI only translates.** It never sees a price or computes a result. It is told to list every assumption it makes (validation requires the list) and to refuse ideas the data cannot support ("Copy Nancy Pelosi's trades") instead of guessing.
+- **Validate, repair once, or refuse.** `validateSpec` rejects unknown tickers, made-up indicators, missing exits, out-of-range numbers, and price compared with a dollar amount (adjusted prices bake in later splits, so that would be hidden look-ahead). The exact errors go back to the model once; anything still invalid is never run.
 - **Code re-describes the rules.** The page shows the AI's summary next to a plain-English description generated from the JSON by code, so a misread idea is visible.
 - **No look-ahead.** Signals use day t's close and fill at day t+1's open. Costs (0.1% per side by default, adjustable) are charged on both sides and included in position sizing, so a buy never spends more cash than the account has.
 - **Honesty report.** Look-ahead comparison (the same rules with the classic one-day bug switched on), result before costs, buy-and-hold comparison, seven named market regimes, a seeded Monte Carlo luck test with 1,000 random traders, a trade-count check, and a survivorship-bias caveat on every run.
@@ -41,7 +41,7 @@ python3 -m http.server 8000
 The seven example ideas use AI answers recorded with `gpt-5.4-mini` (the backtest itself always runs live in the browser). To test your own idea, open **AI settings** and paste an OpenAI or Anthropic key. The key stays in session storage and is sent only to that provider.
 
 ```
-npm test                                         # node --test, 12 tests
+npm test                                         # node --test, 14 tests
 node scripts/fetch-prices.mjs                    # refresh data/*.json from Yahoo Finance
 OPENAI_API_KEY=... node scripts/record-examples.mjs   # re-record the examples (or ANTHROPIC_API_KEY)
 ```
@@ -53,7 +53,7 @@ OPENAI_API_KEY=... node scripts/record-examples.mjs   # re-record the examples (
 | `engine.js` | Validation, indicators (price, SMA, RSI, % change, % off high, VIX, month), backtest, stats, regimes, luck test, honesty checks |
 | `ai.js` | System prompt, OpenAI and Anthropic calls, JSON parsing, validate-and-repair loop |
 | `app.js` | Page logic, tables, SVG chart |
-| `test/engine.test.js` | Hand-checked math, no-peeking fills, costs, sizing, validation, split adjustment, recorded examples |
+| `test/engine.test.js` | Hand-checked indicators, returns, drawdown, CAGR, Sharpe and regimes; no-peeking fills, costs, sizing, open positions, validation, split adjustment on all 15 tickers, recorded examples |
 
 ## Limits
 

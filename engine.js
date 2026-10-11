@@ -6,8 +6,8 @@
 export const TICKERS = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "GOOGL", "META", "JPM", "XOM", "KO", "GLD", "TLT"];
 
 export const INDICATORS = {
-  price: { days: false, about: "closing price, adjusted for splits and dividends (so older prices look lower than the quotes of the time)" },
-  sma: { days: true, about: "average closing price over the last N trading days" },
+  price: { days: false, about: "closing price, adjusted for splits and dividends; only compare it with price or sma, never with a dollar amount" },
+  sma: { days: true, about: "average closing price over the last N trading days; only compare it with price or sma, never with a dollar amount" },
   rsi: { days: true, about: "RSI momentum gauge from 0 to 100 (under 30 = oversold, over 70 = overbought), usually 14 days" },
   change: { days: true, about: "percent change in price over the last N trading days (-5 means down 5%)" },
   off_high: { days: true, about: "percent below the highest close of the last N trading days (0 at a new high, -20 means 20% below it)" },
@@ -54,7 +54,7 @@ export function validateSpec(spec) {
   if (Array.isArray(exit) && !exit.length && spec.hold_days == null && spec.stop_loss_pct == null && spec.take_profit_pct == null) {
     errors.push("The strategy never sells: add an exit condition, hold_days, stop_loss_pct or take_profit_pct.");
   }
-  if (spec.assumptions != null && (!Array.isArray(spec.assumptions) || spec.assumptions.some((a) => typeof a !== "string"))) {
+  if (!Array.isArray(spec.assumptions) || spec.assumptions.some((a) => typeof a !== "string")) {
     errors.push('"assumptions" must be a list of strings.');
   }
   return errors;
@@ -71,7 +71,7 @@ function checkIndicator(x, where, errors) {
   if (!x || typeof x !== "object" || !Object.hasOwn(INDICATORS, x.ind)) {
     errors.push(`${where}: unknown indicator ${JSON.stringify(x?.ind ?? x)}; use one of ${Object.keys(INDICATORS).join(", ")}.`);
   } else if (INDICATORS[x.ind].days) {
-    if (!Number.isInteger(x.days) || x.days < 2 || x.days > 252) errors.push(`${where}: "${x.ind}" needs "days", a whole number from 2 to 252.`);
+    if (!Number.isInteger(x.days) || x.days < 1 || x.days > 252) errors.push(`${where}: "${x.ind}" needs "days", a whole number from 1 to 252.`);
   } else if (x.days != null) {
     errors.push(`${where}: "${x.ind}" takes no "days".`);
   }
@@ -88,6 +88,12 @@ function checkCondition(c, where, errors) {
     if (!Number.isFinite(c.right)) errors.push(`${where}: "right" must be a finite number.`);
   } else {
     checkIndicator(c.right, `${where}.right`, errors);
+  }
+  // Adjusted prices bake in splits and dividends that happened LATER, so "$100" in 2005 is not a price
+  // anyone saw then. Price levels may only be compared with each other, which cancels the adjustment.
+  const isLevel = (x) => x?.ind === "price" || x?.ind === "sma";
+  if (c.op !== "in" && (isLevel(c.left) || isLevel(c.right)) && !(isLevel(c.left) && isLevel(c.right))) {
+    errors.push(`${where}: price and sma can only be compared with price or sma (adjusted prices are not real dollar levels); use change or off_high for percentages.`);
   }
 }
 
@@ -193,21 +199,23 @@ export function backtest(data, spec, { costPct = DEFAULT_COST_PCT, peek = false 
     equity[t] = position ? position.shares * close[t] : cash;
     if (position) daysInMarket++;
   }
-  if (position) trades.push(tradeRecord(position, n - 1, close[n - 1], close[n - 1], "still open"));
+  if (position) trades.push(tradeRecord(position, n - 1, close[n - 1], close[n - 1] * (1 - cost), "still open"));
   return { equity, trades, daysInMarket };
 }
 
 // ---------- 4. Scoring ----------
 
+// Every curve starts from a $1 stake (strategy cash or buy-and-hold), so growth is measured from 1,
+// not from day 0's value, which a peek-mode buy on day 0 would already have changed.
 export function stats(equity, dates) {
   const n = equity.length, returns = [];
-  for (let i = 1; i < n; i++) returns.push(equity[i] / equity[i - 1] - 1);
+  for (let i = 0; i < n; i++) returns.push(equity[i] / (i ? equity[i - 1] : 1) - 1);
   const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
   const sd = Math.sqrt(returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length);
-  let peak = equity[0], maxDrawdown = 0;
+  let peak = 1, maxDrawdown = 0;
   for (const e of equity) { peak = Math.max(peak, e); maxDrawdown = Math.min(maxDrawdown, e / peak - 1); }
   const years = (Date.parse(dates[n - 1]) - Date.parse(dates[0])) / (365.25 * 864e5);
-  const growth = equity[n - 1] / equity[0];
+  const growth = equity[n - 1];
   return {
     totalPct: (growth - 1) * 100,
     cagrPct: (growth ** (1 / years) - 1) * 100,
@@ -275,8 +283,10 @@ export function analyze(data, spec, { costPct = DEFAULT_COST_PCT, sims = 1000 } 
   const noCosts = stats(backtest(data, spec, { costPct: 0 }).equity, data.dates);
   const regimes = regimeTable(data.dates, run.equity, holdEquity);
   const luck = luckTest(data, run.trades, strategy.totalPct, { sims, costPct });
-  const tradeCount = run.trades.length;
-  const wins = run.trades.filter((t) => t.returnPct > 0).length;
+  // The luck test keeps a still-open position (it is real exposure), but counts and win rate use finished trades only.
+  const finished = run.trades.filter((t) => t.reason !== "still open");
+  const tradeCount = finished.length, stillOpen = run.trades.length - tradeCount;
+  const wins = finished.filter((t) => t.returnPct > 0).length;
   const regimeWins = regimes.filter((r) => r.strategyPct > r.holdPct).length;
 
   const checks = [
@@ -304,7 +314,7 @@ export function analyze(data, spec, { costPct = DEFAULT_COST_PCT, sims = 1000 } 
       : { name: "Skill or luck", status: "fail", detail: "No completed trades, so there is nothing to test." },
     {
       name: "Enough trades to judge", status: tradeCount >= 30 ? "pass" : tradeCount >= 10 ? "warn" : "fail",
-      detail: `${tradeCount} trade${tradeCount === 1 ? "" : "s"}. Rule of thumb: under 30 trades, a few lucky ones can decide the whole result.`,
+      detail: `${tradeCount} finished trade${tradeCount === 1 ? "" : "s"}${stillOpen ? " (plus one still open)" : ""}. Rule of thumb: under 30 trades, a few lucky ones can decide the whole result.`,
     },
     {
       name: "Data caveat", status: "info",
@@ -314,7 +324,7 @@ export function analyze(data, spec, { costPct = DEFAULT_COST_PCT, sims = 1000 } 
 
   return {
     run, strategy, hold, holdEquity, regimes, luck, checks,
-    tradeCount, winRatePct: tradeCount ? (wins / tradeCount) * 100 : 0,
+    tradeCount, stillOpen, winRatePct: tradeCount ? (wins / tradeCount) * 100 : 0,
     timeInMarketPct: (run.daysInMarket / data.dates.length) * 100,
   };
 }
