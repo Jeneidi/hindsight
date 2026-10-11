@@ -1,0 +1,265 @@
+[
+  {
+    "idea": "Buy Apple every time it drops 5% in a week",
+    "refines": null,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": true,
+      "name": "AAPL 5% weekly dip buy",
+      "summary": "Buy AAPL when it has fallen 5% over the last 5 trading days. Sell using a standard time limit since no exit was specified.",
+      "ticker": "AAPL",
+      "entry": [
+        {
+          "left": {
+            "ind": "change",
+            "days": 5
+          },
+          "op": "<=",
+          "right": -5
+        }
+      ],
+      "exit": [],
+      "hold_days": 21,
+      "stop_loss_pct": null,
+      "take_profit_pct": null,
+      "assumptions": [
+        "Uses adjusted daily closing prices.",
+        "Buys only when not already holding.",
+        "A 1-week drop means a 5-trading-day percent change.",
+        "Adds a 21-trading-day hold because no exit rule was provided."
+      ]
+    }
+  },
+  {
+    "idea": "Same idea, but add an 8% stop-loss",
+    "refines": 0,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": true,
+      "name": "AAPL 5% weekly dip buy",
+      "summary": "Buy AAPL when it has fallen 5% over the last 5 trading days. Sell using a standard time limit since no exit was specified, and also use an 8% stop-loss.",
+      "ticker": "AAPL",
+      "entry": [
+        {
+          "left": {
+            "ind": "change",
+            "days": 5
+          },
+          "op": "<=",
+          "right": -5
+        }
+      ],
+      "exit": [],
+      "hold_days": 21,
+      "stop_loss_pct": 8,
+      "take_profit_pct": null,
+      "assumptions": [
+        "Uses adjusted daily closing prices.",
+        "Buys only when not already holding.",
+        "A 1-week drop means a 5-trading-day percent change.",
+        "Adds a 21-trading-day hold because no exit rule was provided.",
+        "Adds an 8% stop-loss measured from the buy price."
+      ]
+    }
+  },
+  {
+    "idea": "Buy the market when everyone panics (VIX above 30) and hold for three months",
+    "refines": null,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": true,
+      "name": "Buy SPY on VIX panic",
+      "summary": "Buy SPY when VIX is above 30. Hold the position for three months, then sell.",
+      "ticker": "SPY",
+      "entry": [
+        {
+          "left": {
+            "ind": "vix"
+          },
+          "op": ">",
+          "right": 30
+        }
+      ],
+      "exit": [],
+      "hold_days": 63,
+      "stop_loss_pct": null,
+      "take_profit_pct": null,
+      "assumptions": [
+        "Treats 'the market' as SPY.",
+        "Uses daily close data and enters on the first day VIX is above 30 when not already holding."
+      ]
+    }
+  },
+  {
+    "idea": "Sell in May and go away, buy back in November",
+    "refines": null,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": true,
+      "name": "Sell in May, buy in November",
+      "summary": "Hold the selected market ETF during November through April and stay in cash from May through October. Enter in November and exit at the start of May.",
+      "ticker": "SPY",
+      "entry": [
+        {
+          "left": {
+            "ind": "month"
+          },
+          "op": "in",
+          "right": [
+            11,
+            12,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "exit": [
+        {
+          "left": {
+            "ind": "month"
+          },
+          "op": "in",
+          "right": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      "hold_days": null,
+      "stop_loss_pct": null,
+      "take_profit_pct": null,
+      "assumptions": [
+        "Interprets 'the market' as SPY.",
+        "Uses calendar months only, with trades triggered by the current month's number on the close.",
+        "If already holding when May begins, exit on the first trading day of May."
+      ]
+    }
+  },
+  {
+    "idea": "Buy Nvidia when its 50-day average crosses above its 200-day average, sell when it crosses back below",
+    "refines": null,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": true,
+      "name": "NVDA 50/200-day moving average cross",
+      "summary": "Buy NVDA when its 50-day average crosses above its 200-day average. Sell when the 50-day average crosses back below the 200-day average.",
+      "ticker": "NVDA",
+      "entry": [
+        {
+          "left": {
+            "ind": "sma",
+            "days": 50
+          },
+          "op": "crosses_above",
+          "right": {
+            "ind": "sma",
+            "days": 200
+          }
+        }
+      ],
+      "exit": [
+        {
+          "left": {
+            "ind": "sma",
+            "days": 50
+          },
+          "op": "crosses_below",
+          "right": {
+            "ind": "sma",
+            "days": 200
+          }
+        }
+      ],
+      "hold_days": null,
+      "stop_loss_pct": null,
+      "take_profit_pct": null,
+      "assumptions": [
+        "Uses closing prices to calculate both moving averages.",
+        "Only one NVDA position can be held at a time."
+      ]
+    }
+  },
+  {
+    "idea": "Buy Tesla when RSI drops under 30 and sell when it gets above 70, with a 10% stop-loss",
+    "refines": null,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": true,
+      "name": "TSLA RSI oversold to overbought",
+      "summary": "Buy TSLA when its RSI falls below 30. Sell when RSI rises above 70 or if the trade loses 10% from the entry price.",
+      "ticker": "TSLA",
+      "entry": [
+        {
+          "left": {
+            "ind": "rsi",
+            "days": 14
+          },
+          "op": "<",
+          "right": 30
+        }
+      ],
+      "exit": [
+        {
+          "left": {
+            "ind": "rsi",
+            "days": 14
+          },
+          "op": ">",
+          "right": 70
+        }
+      ],
+      "hold_days": null,
+      "stop_loss_pct": 10,
+      "take_profit_pct": null,
+      "assumptions": [
+        "Uses the standard 14-day RSI because no lookback was specified.",
+        "Signals are evaluated on daily closing prices.",
+        "The stop-loss is based on the close falling 10% below the buy price."
+      ]
+    }
+  },
+  {
+    "idea": "Copy Nancy Pelosi's trades",
+    "refines": null,
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "recordedAt": "2026-10-10",
+    "attempts": 1,
+    "rejected": [],
+    "spec": {
+      "supported": false,
+      "reason": "Nancy Pelosi’s trades require politician trade disclosures and individual stock transaction data, which are not available in the provided daily price data.",
+      "closest": "A testable proxy would be buying SPY when it is above its 200-day average and selling when it falls back below, or another single-ticker price-based rule using the available data."
+    }
+  }
+]

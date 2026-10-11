@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hindsight: Skill or Luck Backtester</title>
+  <meta name="description" content="Describe a trading idea in plain English. An AI turns it into checked rules, a transparent engine tests it on 20 years of prices, and an honesty report says whether it was skill or luck.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3e635'/%3E%3Cpath d='M6 22l6-7 5 4 9-11' stroke='%230b0f0c' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top__row">
+      <a class="brand" href="./">Hindsight</a>
+      <nav class="top__links">
+        <a href="https://github.com/Jeneidi/hindsight/blob/main/HOW-IT-WORKS.md">How it works</a>
+        <a href="https://github.com/Jeneidi/hindsight">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Got a trading idea? Find out if it was <em>skill or luck</em>.</h1>
+      <p class="lede">Describe it in plain English. An AI turns it into a rule sheet that code checks before anything runs. A transparent engine tests it on 20 years of daily prices, and an honesty report tells you whether to believe the result.</p>
+    </section>
+
+    <section class="card" aria-labelledby="ask-title">
+      <h2 id="ask-title" class="sr-only">Describe your idea</h2>
+      <form id="ask">
+        <label for="idea" class="label">Your idea</label>
+        <textarea id="idea" rows="2" maxlength="500" placeholder="Buy Apple every time it drops 5% in a week"></textarea>
+        <div class="row">
+          <button type="submit" id="run">Test it</button>
+          <span class="hint">Examples run instantly with no key. Your own ideas need an API key below.</span>
+        </div>
+        <div class="chips" id="examples" aria-label="Example ideas"></div>
+        <details class="settings">
+          <summary>AI settings (bring your own key)</summary>
+          <div class="settings__grid">
+            <label>Provider
+              <select id="provider"></select>
+            </label>
+            <label>Model
+              <input id="model" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="settings__key">API key
+              <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+            </label>
+          </div>
+          <p class="fine">The key stays in this tab (session storage) and is sent only to the provider you pick, never to any other server. The model only translates your words into rules; it never sees prices or computes results.</p>
+        </details>
+      </form>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <div id="results" hidden>
+      <section class="card" aria-labelledby="understood-title">
+        <div class="card__head">
+          <h2 id="understood-title">What the AI understood</h2>
+          <span id="source" class="tag"></span>
+        </div>
+        <p id="spec-name" class="spec__name"></p>
+        <p id="spec-summary"></p>
+        <h3>Rules as the engine will run them <span class="muted">(written by code from the rule sheet, not by the AI)</span></h3>
+        <ul id="spec-rules"></ul>
+        <h3>Assumptions the AI made</h3>
+        <ul id="spec-assumptions"></ul>
+        <details><summary>Raw rule sheet (JSON)</summary><pre id="spec-json"></pre></details>
+        <div id="unsupported" hidden>
+          <p class="bad" id="unsupported-reason"></p>
+          <p id="unsupported-closest"></p>
+        </div>
+      </section>
+
+      <div id="analysis">
+        <section class="card" aria-labelledby="results-title">
+          <div class="card__head">
+            <h2 id="results-title">Results</h2>
+            <label class="cost">Cost per trade side
+              <input id="cost" type="number" min="0" max="5" step="0.05" value="0.1"> %
+            </label>
+          </div>
+          <div class="metrics" id="metrics"></div>
+          <figure class="chart">
+            <div id="chart"></div>
+            <figcaption><span class="key key--a"></span>Strategy <span class="key key--b"></span>Buy and hold <span class="muted">· growth of $10,000, log scale</span></figcaption>
+          </figure>
+        </section>
+
+        <section class="card" aria-labelledby="honesty-title">
+          <h2 id="honesty-title">Honesty report</h2>
+          <ul class="checks" id="checks"></ul>
+        </section>
+
+        <section class="card" aria-labelledby="regimes-title">
+          <h2 id="regimes-title">By market regime</h2>
+          <div class="scroll"><table id="regimes"></table></div>
+        </section>
+
+        <section class="card">
+          <details>
+            <summary id="trades-summary">Every trade</summary>
+            <div class="scroll"><table id="trades"></table></div>
+          </details>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="refine-title">
+        <h2 id="refine-title">Change something</h2>
+        <form id="refine" class="row">
+          <label for="tweak" class="sr-only">Change to make</label>
+          <input id="tweak" maxlength="300" placeholder="Add a 10% stop-loss">
+          <button type="submit">Re-test</button>
+        </form>
+        <p class="fine">Needs an API key. The AI edits the current rule sheet; every version you run is listed below so you can see whether a tweak helped or just repainted history.</p>
+        <div class="scroll"><table id="versions"></table></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Educational project, not investment advice. Prices: Yahoo Finance daily data, adjusted for splits and dividends. Inspired by Limex's Ziplime; not affiliated with Limex.</p>
+    <p>Built by <a href="https://mjeneidi.com">Mohammad Jeneidi</a>.</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
