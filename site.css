@@ -1,0 +1,112 @@
+/* Hindsight's custom violet palette and project-specific presentation layer. */
+:root {
+  --color-teal: #130f2b;
+  --color-booth: #1f1943;
+  --color-rule: #3a326b;
+  --rule-hover: #514891;
+  --color-tungsten: #b197fc;
+  --accent-hover: #c5b3ff;
+  --color-ivory: #f4f0ff;
+  --color-haze: #aaa1c5;
+  --deep: #0f0b25;
+  --mid: #1a1440;
+  --low: #120d2f;
+  --glow: 94 73 174;
+  --shade: 23 13 61;
+  --panel: #100c28;
+  --hold: #8f87b6;
+  --good: #73e6a7;
+  --warn: #f3cb72;
+  --bad: #ff929d;
+  --info: #92d9ff;
+  --color-alert: #ff9bba;
+}
+
+body { overflow-x: hidden; }
+.hero { gap: 0.25rem; }
+.hero .eyebrow { margin-bottom: 1rem; }
+.hero .lead { max-width: 42em; }
+.hero-actions { align-items: center; }
+.section > .wrap, .section.wrap { max-width: 76rem; margin-inline: auto; }
+.card { box-shadow: 0 18px 50px -38px rgb(0 0 0 / 0.8); }
+.overview-card { display: grid; align-content: center; gap: 0.7rem; min-height: 20rem; text-align: center; }
+.overview-card .mono { color: var(--color-ivory); }
+.flow-arrow { color: var(--color-tungsten); font-size: 1.5rem; line-height: 1; }
+.signal-mark { display: flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 4.5rem; margin-bottom: 0.5rem; color: var(--color-tungsten); }
+.signal-mark span { width: 0.5rem; height: 2.6rem; border-radius: 999px; background: currentColor; transform: rotate(-25deg); }
+.signal-mark span:nth-child(2) { height: 4rem; }
+.signal-mark span:nth-child(3) { height: 5rem; }
+.signal-mark span:nth-child(4) { height: 3.5rem; }
+.signal-mark span:nth-child(5) { height: 2rem; }
+.code-card { padding: clamp(1.25rem, 3vw, 2rem); }
+.code-card .code { margin-top: 1rem; }
+.try-intro { max-width: 42rem; margin-bottom: 2rem; }
+.demo-card { max-width: 76rem; margin-inline: auto; }
+.form-row { margin-top: 1rem; }
+.form-row .hint { flex: 1 1 18rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+.chip { padding: 0.55rem 0.8rem; border: 1px solid var(--color-rule); border-radius: var(--r); color: var(--color-ivory); background: color-mix(in oklab, var(--color-booth) 70%, transparent); font-size: 0.875rem; line-height: 1.35; text-align: left; transition: border-color 0.2s, background-color 0.2s, transform 0.2s; }
+.chip:hover { border-color: var(--color-tungsten); background: var(--color-booth); transform: translateY(-2px); }
+.settings { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-rule); }
+.settings summary { color: var(--color-haze); }
+.settings__grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem; margin-top: 1rem; color: var(--color-haze); font-size: 0.875rem; }
+.settings__grid label { display: grid; gap: 0.45rem; }
+.settings__grid .control { min-height: 48px; }
+.fine { margin-top: 0.9rem; }
+.status { min-height: 1.5em; margin-top: 1rem; }
+.results-section { padding-top: 0; }
+.results-section .card { margin-inline: auto; }
+#results-output[hidden] { display: none; }
+#results-output:not([hidden]) { display: block; }
+.analysis-section { padding-top: 0; }
+.analysis-section .card + .card { margin-top: 1rem; }
+.card__head .h2 { margin-bottom: 0; }
+.card__head .h3 { margin: 0; }
+.cost { white-space: nowrap; }
+.cost .control { display: inline-block; width: 5rem; min-height: 42px; padding: 0.5rem; margin-inline: 0.35rem; }
+.metrics { margin-top: 2rem; }
+.metric { min-height: 6.5rem; padding: 1rem; background: color-mix(in oklab, var(--color-teal) 35%, var(--color-booth)); }
+.metric b { font-family: var(--font-serif); font-size: 1.9rem; }
+.chart { margin-top: 2rem; }
+#chart { overflow-x: auto; padding: 0.5rem 0; }
+.chart svg { min-width: 600px; }
+.chart .grid { stroke: var(--color-rule); }
+.chart .strategy { stroke: var(--color-tungsten); }
+.chart .hold { stroke: var(--hold); }
+.detail-list { list-style: disc; padding-inline-start: 1.4rem; margin-top: 0.75rem; }
+.detail-list li { margin: 0.45rem 0; color: var(--soft); }
+.card > h3 { color: var(--color-ivory); }
+.card h3 .muted { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 400; }
+.card details { margin-top: 1.25rem; }
+.card details summary { color: var(--color-tungsten); }
+.card details .code { margin-top: 0.75rem; }
+.checks { max-width: 54rem; margin: 2rem auto 0; text-align: left; }
+.check { padding: 1rem; border: 1px solid var(--color-rule); border-radius: var(--r); background: color-mix(in oklab, var(--color-booth) 68%, transparent); }
+.check p { margin-top: 0.35rem; }
+.badge { border-radius: var(--r); padding: 0.35rem 0.5rem; }
+.badge--pass { color: var(--good); }
+.badge--warn { color: var(--warn); }
+.badge--fail { color: var(--bad); }
+.badge--info { color: var(--info); }
+.scroll { overflow-x: auto; border: 1px solid var(--color-rule); border-radius: var(--r); margin-top: 1.25rem; }
+table { background: color-mix(in oklab, var(--color-teal) 38%, var(--color-booth)); }
+th, td { border-bottom-color: var(--color-rule); }
+th { color: var(--color-haze); }
+.refine-card { max-width: 76rem; margin-inline: auto; }
+#refine { margin-top: 1.5rem; }
+#refine .control { flex: 1 1 18rem; }
+#versions { margin-top: 0; }
+.foot { padding-block: 1rem 3rem; }
+
+@media (max-width: 899px) {
+  .settings__grid { grid-template-columns: 1fr 1fr; }
+  .settings__grid .settings__key { grid-column: 1 / -1; }
+}
+
+@media (max-width: 639px) {
+  .settings__grid { grid-template-columns: 1fr; }
+  .settings__grid .settings__key { grid-column: auto; }
+  .form-row .hint { text-align: center; }
+  .cost { width: 100%; justify-content: space-between; }
+  .cost .control { margin-inline: auto 0.35rem; }
+}

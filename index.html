@@ -1,129 +1,257 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette="violet">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hindsight: Skill or Luck Backtester</title>
   <meta name="description" content="Describe a trading idea in plain English. An AI turns it into checked rules, a transparent engine tests it on 20 years of prices, and an honesty report says whether it was skill or luck.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3e635'/%3E%3Cpath d='M6 22l6-7 5 4 9-11' stroke='%230b0f0c' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#130F2B">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23130f2b'/%3E%3Cpath d='M6 22l6-7 5 4 9-11' stroke='%23b197fc' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="kit.css">
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <header class="top">
-    <div class="wrap top__row">
-      <a class="brand" href="./">Hindsight</a>
-      <nav class="top__links">
-        <a href="https://github.com/Jeneidi/hindsight/blob/main/HOW-IT-WORKS.md">How it works</a>
-        <a href="https://github.com/Jeneidi/hindsight">GitHub</a>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#top" aria-label="Hindsight home">
+        <svg class="glyph" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="1.7" y="9" width="2.6" height="6" rx="1.3" fill="currentColor"/><rect x="6.2" y="5" width="2.6" height="14" rx="1.3" fill="currentColor"/><rect x="10.7" y="2" width="2.6" height="20" rx="1.3" fill="currentColor"/><rect x="15.2" y="6" width="2.6" height="12" rx="1.3" fill="currentColor"/><rect x="19.7" y="10" width="2.6" height="4" rx="1.3" fill="currentColor"/></svg>
+        <span>Hindsight</span>
+      </a>
+      <nav class="desk-nav" aria-label="Sections">
+        <ul class="nav-links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#evidence">Evidence</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#try">Try it</a></li>
+        </ul>
       </nav>
+      <div class="header-actions">
+        <a class="text-link" href="https://github.com/Jeneidi/hindsight" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a class="btn btn-primary header-cta" href="#try">Test an idea</a>
+        <button type="button" class="menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="mobile-nav" id="mobile-menu">
+      <div class="mobile-nav-inner">
+        <ul class="mobile-nav-links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#evidence">Evidence</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#try">Try it</a></li>
+          <li><a href="https://github.com/Jeneidi/hindsight" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+        <a class="btn btn-primary mobile-nav-cta" href="#try">Test an idea</a>
+      </div>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <h1>Got a trading idea? Find out if it was <em>skill or luck</em>.</h1>
-      <p class="lede">Describe it in plain English. An AI turns it into a rule sheet that code checks before anything runs. A transparent engine tests it on 20 years of daily prices, and an honesty report tells you whether to believe the result.</p>
+  <main id="main" tabindex="-1">
+    <section class="hero wrap" id="top" aria-labelledby="title">
+      <p class="eyebrow">A backtester for honest ideas</p>
+      <h1 id="title" class="display">
+        <span class="line"><span>Was it skill</span></span>
+        <span class="line"><span>or just luck?</span></span>
+      </h1>
+      <p class="lead hero-sub">Describe a trading idea in plain English. Hindsight turns it into checked rules, tests it on 20 years of daily prices, and shows the evidence before you trust the result.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#try">Test an idea</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
     </section>
 
-    <section class="card" aria-labelledby="ask-title">
-      <h2 id="ask-title" class="sr-only">Describe your idea</h2>
-      <form id="ask">
-        <label for="idea" class="label">Your idea</label>
-        <textarea id="idea" rows="2" maxlength="500" placeholder="Buy Apple every time it drops 5% in a week"></textarea>
-        <div class="row">
-          <button type="submit" id="run">Test it</button>
-          <span class="hint">Examples run instantly with no key. Your own ideas need an API key below.</span>
+    <section class="section wrap" id="overview" aria-labelledby="overview-title">
+      <div class="split">
+        <div>
+          <p class="eyebrow">01 / The problem</p>
+          <h2 id="overview-title" class="h2">A good-looking backtest can still lie.</h2>
+          <p class="prose">Trading ideas often peek at tomorrow, ignore costs, lean on one lucky stretch of history, or never compare against random timing. Hindsight turns those failure modes into visible checks.</p>
         </div>
-        <div class="chips" id="examples" aria-label="Example ideas"></div>
-        <details class="settings">
-          <summary>AI settings (bring your own key)</summary>
-          <div class="settings__grid">
-            <label>Provider
-              <select id="provider"></select>
-            </label>
-            <label>Model
-              <input id="model" autocomplete="off" spellcheck="false">
-            </label>
-            <label class="settings__key">API key
-              <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
-            </label>
+        <div class="card overview-card">
+          <div class="signal-mark" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+          <p class="mono">plain English</p>
+          <p class="flow-arrow" aria-hidden="true">↓</p>
+          <p class="mono">checked rule sheet</p>
+          <p class="flow-arrow" aria-hidden="true">↓</p>
+          <p class="mono">honesty report</p>
+        </div>
+      </div>
+      <div class="split flip">
+        <div class="card code-card">
+          <p class="eyebrow">The engine's contract</p>
+          <pre class="code">signal = day t close
+fill = day t + 1 open
+costs = both sides
+verdict = evidence, not vibes</pre>
+        </div>
+        <div>
+          <p class="eyebrow">02 / The approach</p>
+          <h3 class="h3">Code checks what the AI translates.</h3>
+          <p class="prose">The model only converts your words into a rule sheet. Validation rejects unsupported or unsafe assumptions, then the transparent engine runs the test and writes the readable explanation.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section band center" id="evidence" aria-labelledby="results-title">
+      <div class="wrap">
+        <p class="eyebrow">03 / Evidence</p>
+        <h2 id="results-title" class="h2">Every result comes with a reason to doubt it.</h2>
+        <p class="lead">The live report compares your strategy with holding, costs, look-ahead, market regimes, and random traders.</p>
+        <div class="stats">
+          <div class="stat"><b>20 yrs</b><span>daily price history</span></div>
+          <div class="stat"><b>7</b><span>honesty checks</span></div>
+          <div class="stat"><b>1,000</b><span>random traders</span></div>
+          <div class="stat"><b>0</b><span>servers needed to test</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="how" aria-labelledby="how-title">
+      <div class="split">
+        <div>
+          <p class="eyebrow">04 / The method</p>
+          <h2 id="how-title" class="h2">How it works</h2>
+          <p class="prose">The AI does the translation. Code does the checking, backtesting, and explanation. Read the full walkthrough in <a class="inline-link" href="https://github.com/Jeneidi/hindsight/blob/main/HOW-IT-WORKS.md" target="_blank" rel="noopener">HOW-IT-WORKS.md</a>.</p>
+        </div>
+        <ol class="steps">
+          <li><div><b>Describe the idea</b><p>Use ordinary words, such as buying Apple after a five-day drop.</p></div></li>
+          <li><div><b>Translate it into rules</b><p>The model lists every assumption and refuses what the data cannot support.</p></div></li>
+          <li><div><b>Run the backtest</b><p>Signals fill on the next day's open, with costs charged on both sides.</p></div></li>
+          <li><div><b>Interrogate the result</b><p>Compare it with holding, regimes, look-ahead, and random traders.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section band" id="try" aria-labelledby="try-title">
+      <div class="wrap">
+        <div class="try-intro">
+          <p class="eyebrow">05 / Live in your browser</p>
+          <h2 id="try-title" class="h2">Try a trading idea.</h2>
+          <p class="lead">Recorded examples run instantly with no key. Your own idea can use a provider key that stays in this tab and is sent only to the provider you pick.</p>
+        </div>
+
+        <section class="card demo-card" aria-labelledby="ask-title">
+          <h3 id="ask-title" class="sr-only">Describe your idea</h3>
+          <form id="ask">
+            <label for="idea" class="label">Your idea</label>
+            <textarea id="idea" class="control" rows="2" maxlength="500" placeholder="Buy Apple every time it drops 5% in a week"></textarea>
+            <div class="row form-row">
+              <button type="submit" id="run" class="btn btn-primary">Test it</button>
+              <span class="hint">Examples run instantly with no key. Your own ideas need an API key below.</span>
+            </div>
+            <div class="chips" id="examples" aria-label="Example ideas"></div>
+            <details class="settings">
+              <summary>AI settings (bring your own key)</summary>
+              <div class="settings__grid">
+                <label>Provider
+                  <select id="provider" class="control"></select>
+                </label>
+                <label>Model
+                  <input id="model" class="control" autocomplete="off" spellcheck="false">
+                </label>
+                <label class="settings__key">API key
+                  <input id="key" class="control" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+                </label>
+              </div>
+              <p class="fine">The key stays in this tab and is sent only to the provider you pick, never to another server. The model translates words into rules; it never sees prices or computes results.</p>
+            </details>
+          </form>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </section>
+
+    <div id="results" class="wrap" hidden>
+      <section class="section results-section" aria-labelledby="understood-title">
+        <div class="card" aria-labelledby="understood-title">
+          <div class="card__head">
+            <h2 id="understood-title" class="h3">What the AI understood</h2>
+            <span id="source" class="tag"></span>
           </div>
-          <p class="fine">The key stays in this tab (session storage) and is sent only to the provider you pick, never to any other server. The model only translates your words into rules; it never sees prices or computes results.</p>
-        </details>
-      </form>
-      <p id="status" class="status" role="status" aria-live="polite"></p>
-    </section>
-
-    <div id="results" hidden>
-      <section class="card" aria-labelledby="understood-title">
-        <div class="card__head">
-          <h2 id="understood-title">What the AI understood</h2>
-          <span id="source" class="tag"></span>
-        </div>
-        <p id="spec-name" class="spec__name"></p>
-        <p id="spec-summary"></p>
-        <h3>Rules as the engine will run them <span class="muted">(written by code from the rule sheet, not by the AI)</span></h3>
-        <ul id="spec-rules"></ul>
-        <h3>Assumptions the AI made</h3>
-        <ul id="spec-assumptions"></ul>
-        <details><summary>Raw rule sheet (JSON)</summary><pre id="spec-json"></pre></details>
-        <div id="unsupported" hidden>
-          <p class="bad" id="unsupported-reason"></p>
-          <p id="unsupported-closest"></p>
+          <p id="spec-name" class="spec__name"></p>
+          <p id="spec-summary" class="lead"></p>
+          <h3>Rules as the engine will run them <span class="muted">(written by code from the rule sheet, not by the AI)</span></h3>
+          <ul id="spec-rules" class="detail-list"></ul>
+          <h3>Assumptions the AI made</h3>
+          <ul id="spec-assumptions" class="detail-list"></ul>
+          <details><summary>Raw rule sheet (JSON)</summary><pre id="spec-json" class="code"></pre></details>
+          <div id="unsupported" hidden>
+            <p class="bad" id="unsupported-reason"></p>
+            <p id="unsupported-closest"></p>
+          </div>
         </div>
       </section>
 
       <div id="analysis">
-        <section class="card" aria-labelledby="results-title">
-          <div class="card__head">
-            <h2 id="results-title">Results</h2>
-            <label class="cost">Cost per trade side
-              <input id="cost" type="number" min="0" max="5" step="0.05" value="0.1"> %
-            </label>
+        <section class="section wrap analysis-section" aria-labelledby="results-title-live">
+          <div class="card">
+            <div class="card__head">
+              <div><p class="eyebrow">Live analysis</p><h2 id="results-title-live" class="h2">Results</h2></div>
+              <label class="cost">Cost per trade side
+                <input id="cost" class="control" type="number" min="0" max="5" step="0.05" value="0.1"> %
+              </label>
+            </div>
+            <div class="metrics" id="metrics"></div>
+            <figure class="chart">
+              <div id="chart"></div>
+              <figcaption><span class="key key--a"></span>Strategy <span class="key key--b"></span>Buy and hold <span class="muted">· growth of $10,000, log scale</span></figcaption>
+            </figure>
           </div>
-          <div class="metrics" id="metrics"></div>
-          <figure class="chart">
-            <div id="chart"></div>
-            <figcaption><span class="key key--a"></span>Strategy <span class="key key--b"></span>Buy and hold <span class="muted">· growth of $10,000, log scale</span></figcaption>
-          </figure>
         </section>
 
-        <section class="card" aria-labelledby="honesty-title">
-          <h2 id="honesty-title">Honesty report</h2>
-          <ul class="checks" id="checks"></ul>
+        <section class="section band center" aria-labelledby="honesty-title">
+          <div class="wrap">
+            <h2 id="honesty-title" class="h2">Honesty report</h2>
+            <ul class="checks" id="checks"></ul>
+          </div>
         </section>
 
-        <section class="card" aria-labelledby="regimes-title">
-          <h2 id="regimes-title">By market regime</h2>
-          <div class="scroll"><table id="regimes"></table></div>
-        </section>
-
-        <section class="card">
-          <details>
-            <summary id="trades-summary">Every trade</summary>
-            <div class="scroll"><table id="trades"></table></div>
-          </details>
+        <section class="section wrap analysis-section" aria-labelledby="regimes-title">
+          <div class="card">
+            <h2 id="regimes-title" class="h2">By market regime</h2>
+            <div class="scroll"><table id="regimes"></table></div>
+          </div>
+          <div class="card">
+            <details>
+              <summary id="trades-summary">Every trade</summary>
+              <div class="scroll"><table id="trades"></table></div>
+            </details>
+          </div>
         </section>
       </div>
 
-      <section class="card" aria-labelledby="refine-title">
-        <h2 id="refine-title">Change something</h2>
-        <form id="refine" class="row">
-          <label for="tweak" class="sr-only">Change to make</label>
-          <input id="tweak" maxlength="300" placeholder="Add a 10% stop-loss">
-          <button type="submit">Re-test</button>
-        </form>
-        <p class="fine">Needs an API key. The AI edits the current rule sheet; every version you run is listed below so you can see whether a tweak helped or just repainted history.</p>
-        <div class="scroll"><table id="versions"></table></div>
+      <section class="section wrap" aria-labelledby="refine-title">
+        <div class="card refine-card">
+          <p class="eyebrow">Keep questioning it</p>
+          <h2 id="refine-title" class="h2">Change something</h2>
+          <form id="refine" class="row">
+            <label for="tweak" class="sr-only">Change to make</label>
+            <input id="tweak" class="control" maxlength="300" placeholder="Add a 10% stop-loss">
+            <button type="submit" class="btn btn-primary">Re-test</button>
+          </form>
+          <p class="fine">Needs an API key. The AI edits the current rule sheet. Every version stays below so you can see whether a tweak helped or just repainted history.</p>
+          <div class="scroll"><table id="versions"></table></div>
+        </div>
       </section>
     </div>
   </main>
 
-  <footer class="wrap foot">
-    <p>Educational project, not investment advice. Prices: Yahoo Finance daily data, adjusted for splits and dividends. Inspired by Limex's Ziplime; not affiliated with Limex.</p>
-    <p>Built by <a href="https://mjeneidi.com">Mohammad Jeneidi</a>.</p>
+  <footer class="wrap site-footer">
+    <p class="footer-brand"><svg class="glyph" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="1.7" y="9" width="2.6" height="6" rx="1.3" fill="currentColor"/><rect x="6.2" y="5" width="2.6" height="14" rx="1.3" fill="currentColor"/><rect x="10.7" y="2" width="2.6" height="20" rx="1.3" fill="currentColor"/><rect x="15.2" y="6" width="2.6" height="12" rx="1.3" fill="currentColor"/><rect x="19.7" y="10" width="2.6" height="4" rx="1.3" fill="currentColor"/></svg> Hindsight</p>
+    <ul>
+      <li><a href="https://github.com/Jeneidi/hindsight" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://mjeneidi.com" target="_blank" rel="noopener">mjeneidi.com</a></li>
+    </ul>
+    <p>© 2026 Mohammad Jeneidi</p>
   </footer>
 
+  <div class="toast-region" role="status" aria-live="polite"></div>
+  <script src="kit.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
